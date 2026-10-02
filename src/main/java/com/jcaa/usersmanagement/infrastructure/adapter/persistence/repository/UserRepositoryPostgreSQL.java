@@ -26,11 +26,22 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Adaptador de persistencia para PostgreSQL (Supabase / Render Postgres).
+ * Se activa cuando la propiedad {@code db.type=postgresql}.
+ * <p>
+ * Las diferencias respecto al adaptador MySQL son:
+ * <ul>
+ *   <li>NOW() → CURRENT_TIMESTAMP (estándar SQL, también válido en PG)</li>
+ *   <li>LIMIT 1 → FETCH FIRST 1 ROWS ONLY (estándar SQL:2008)</li>
+ *   <li>Los tipos ENUM se almacenan como VARCHAR en el esquema PG</li>
+ * </ul>
+ */
 @Slf4j
 @Repository
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "db.type", havingValue = "mysql", matchIfMissing = true)
-public class UserRepositoryMySQL
+@ConditionalOnProperty(name = "db.type", havingValue = "postgresql")
+public class UserRepositoryPostgreSQL
     implements SaveUserPort,
         UpdateUserPort,
         GetUserByIdPort,
@@ -41,21 +52,22 @@ public class UserRepositoryMySQL
   private static final String SQL_INSERT =
       "INSERT INTO users "
       + "(id, name, email, password, role, status, created_at, updated_at) "
-      + "VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())";
+      + "VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
 
   private static final String SQL_UPDATE =
-      "UPDATE users SET name = ?, email = ?, password = ?, role = ?, status = ?, updated_at = NOW() "
+      "UPDATE users SET name = ?, email = ?, password = ?, role = ?, status = ?, "
+      + "updated_at = CURRENT_TIMESTAMP "
       + "WHERE id = ?";
 
   private static final String SQL_SELECT_BY_ID =
       "SELECT id, name, email, password, role, status, created_at, updated_at "
       + "FROM users "
-      + "WHERE id = ? LIMIT 1";
+      + "WHERE id = ? FETCH FIRST 1 ROWS ONLY";
 
   private static final String SQL_SELECT_BY_EMAIL =
       "SELECT id, name, email, password, role, status, created_at, updated_at "
       + "FROM users "
-      + "WHERE email = ? LIMIT 1";
+      + "WHERE email = ? FETCH FIRST 1 ROWS ONLY";
 
   private static final String SQL_SELECT_ALL =
       "SELECT id, name, email, password, role, status, created_at, updated_at "
@@ -63,8 +75,8 @@ public class UserRepositoryMySQL
       + "ORDER BY name ASC";
 
   private static final String SQL_DELETE =
-        "DELETE FROM users "
-        + "WHERE id = ?";
+      "DELETE FROM users "
+      + "WHERE id = ?";
 
   private final DataSource dataSource;
 

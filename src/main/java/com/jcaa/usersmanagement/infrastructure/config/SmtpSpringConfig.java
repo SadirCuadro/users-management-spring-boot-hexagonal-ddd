@@ -8,29 +8,22 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class SmtpSpringConfig {
 
-  private static final String PROP_SMTP_HOST        = "${smtp.host}";
-  private static final String PROP_SMTP_PORT        = "${smtp.port}";
-  private static final String PROP_SMTP_USERNAME    = "${smtp.username}";
-  private static final String PROP_SMTP_PASSWORD    = "${smtp.password}";
-  private static final String PROP_SMTP_FROM        = "${smtp.from.address}";
-  private static final String PROP_SMTP_FROM_NAME   = "${smtp.from.name}";
-
-  @Value(PROP_SMTP_HOST)
+  @Value("${spring.mail.host:${smtp.host:smtp.gmail.com}}")
   private String smtpHost;
 
-  @Value(PROP_SMTP_PORT)
+  @Value("${spring.mail.port:${smtp.port:587}}")
   private int smtpPort;
 
-  @Value(PROP_SMTP_USERNAME)
+  @Value("${spring.mail.username:${smtp.username:${MAIL_USERNAME:}}}")
   private String smtpUsername;
 
-  @Value(PROP_SMTP_PASSWORD)
+  @Value("${spring.mail.password:${smtp.password:${MAIL_PASSWORD:}}}")
   private String smtpPassword;
 
-  @Value(PROP_SMTP_FROM)
+  @Value("${smtp.from.address:${spring.mail.username:${MAIL_USERNAME:admin@example.com}}}")
   private String smtpFromAddress;
 
-  @Value(PROP_SMTP_FROM_NAME)
+  @Value("${smtp.from.name:${MAIL_FROM_NAME:Gestion de Usuarios}}")
   private String smtpFromName;
 
   @Bean

@@ -13,48 +13,55 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods = false)
 public class DataSourceSpringConfig {
 
-  private static final String PROP_DB_HOST     = "${db.host}";
-  private static final String PROP_DB_PORT     = "${db.port}";
-  private static final String PROP_DB_NAME     = "${db.name}";
-  private static final String PROP_DB_USERNAME = "${db.username}";
-  private static final String PROP_DB_PASSWORD = "${db.password}";
-  private static final String PROP_DB_TYPE     = "${db.type:mysql}";
+  @Value("${spring.datasource.url:}")
+  private String springDatasourceUrl;
 
-  private static final String LOG_DATASOURCE_INIT =
-      "[DataSourceSpringConfig] DataSource inicializado. type={} host={} port={}";
+  @Value("${spring.datasource.username:${db.username:postgres}}")
+  private String datasourceUsername;
 
-  @Value(PROP_DB_HOST)
+  @Value("${spring.datasource.password:${db.password:postgres}}")
+  private String datasourcePassword;
+
+  @Value("${spring.datasource.driver-class-name:}")
+  private String driverClassName;
+
+  @Value("${db.host:localhost}")
   private String dbHost;
 
-  @Value(PROP_DB_PORT)
+  @Value("${db.port:5432}")
   private int dbPort;
 
-  @Value(PROP_DB_NAME)
+  @Value("${db.name:users_db}")
   private String dbName;
 
-  @Value(PROP_DB_USERNAME)
-  private String dbUsername;
-
-  @Value(PROP_DB_PASSWORD)
-  private String dbPassword;
-
-  @Value(PROP_DB_TYPE)
+  @Value("${db.type:postgresql}")
   private String dbType;
 
   @Bean
   public DataSource dataSource() {
-    final DatabaseConfig config =
-        new DatabaseConfig(dbHost, dbPort, dbName, dbUsername, dbPassword, dbType);
-
     final HikariConfig hikariConfig = new HikariConfig();
-    hikariConfig.setJdbcUrl(config.buildJdbcUrl());
-    hikariConfig.setUsername(config.username());
-    hikariConfig.setPassword(config.password());
+
+    if (springDatasourceUrl != null && !springDatasourceUrl.isBlank()) {
+      hikariConfig.setJdbcUrl(springDatasourceUrl);
+      hikariConfig.setUsername(datasourceUsername);
+      hikariConfig.setPassword(datasourcePassword);
+      if (driverClassName != null && !driverClassName.isBlank()) {
+        hikariConfig.setDriverClassName(driverClassName);
+      }
+      log.info("[DataSourceSpringConfig] DataSource inicializado via spring.datasource.url: {}", springDatasourceUrl);
+    } else {
+      final DatabaseConfig config =
+          new DatabaseConfig(dbHost, dbPort, dbName, datasourceUsername, datasourcePassword, dbType);
+      hikariConfig.setJdbcUrl(config.buildJdbcUrl());
+      hikariConfig.setUsername(config.username());
+      hikariConfig.setPassword(config.password());
+      log.info("[DataSourceSpringConfig] DataSource inicializado via DatabaseConfig. type={} host={} port={}", dbType, dbHost, dbPort);
+    }
+
     hikariConfig.setMaximumPoolSize(10);
     hikariConfig.setMinimumIdle(2);
     hikariConfig.setConnectionTimeout(30_000);
 
-    log.info(LOG_DATASOURCE_INIT, dbType, dbHost, dbPort);
     return new HikariDataSource(hikariConfig);
   }
 }

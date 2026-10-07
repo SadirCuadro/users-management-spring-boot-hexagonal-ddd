@@ -79,11 +79,12 @@
       <version>${mysql.connector.version}</version>
     </dependency>
 
-    <!-- PostgreSQL JDBC Connector (Supabase / Render Postgres) -->
+    <!-- PostgreSQL JDBC Connector (Runtime dependency) -->
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
       <version>${postgresql.version}</version>
+      <scope>runtime</scope>
     </dependency>
 
     <!-- JavaMail API (javax.mail legacy — NO migrado a jakarta.mail, intencional) -->

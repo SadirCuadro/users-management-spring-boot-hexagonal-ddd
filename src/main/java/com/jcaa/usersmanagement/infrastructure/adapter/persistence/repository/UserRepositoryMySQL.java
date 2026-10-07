@@ -29,7 +29,7 @@ import java.util.Optional;
 @Slf4j
 @Repository
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "db.type", havingValue = "mysql", matchIfMissing = true)
+@ConditionalOnProperty(name = "db.type", havingValue = "mysql")
 public class UserRepositoryMySQL
     implements SaveUserPort,
         UpdateUserPort,

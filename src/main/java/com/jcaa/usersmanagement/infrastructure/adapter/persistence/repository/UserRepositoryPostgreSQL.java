@@ -40,7 +40,7 @@ import java.util.Optional;
 @Slf4j
 @Repository
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "db.type", havingValue = "postgresql")
+@ConditionalOnProperty(name = "db.type", havingValue = "postgresql", matchIfMissing = true)
 public class UserRepositoryPostgreSQL
     implements SaveUserPort,
         UpdateUserPort,

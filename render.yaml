@@ -1,3 +1,9 @@
+databases:
+  - name: users-db
+    databaseName: users_db
+    user: users_admin
+    plan: free
+
 services:
   - type: web
     name: users-management-api
@@ -6,34 +12,33 @@ services:
     branch: main
     autoDeployTrigger: commit
     healthCheckPath: /v3/api-docs
+    dockerfilePath: ./Dockerfile
     envVars:
       - key: PORT
         value: "8080"
       - key: DB_TYPE
         value: postgresql
-      - key: DB_HOST
-        value: dpg-db02hi60tbcc73ftq3e0-a
-      - key: DB_PORT
-        value: "5432"
-      - key: DB_NAME
-        value: crud_usuarios_3ugt
-      - key: DB_USERNAME
-        value: users_admin
-      - key: DB_PASSWORD
-        value: XyTR58JyzoojHabqMOJVVtbZ18rPm2I2
-      - key: SMTP_HOST
+      - key: DATASOURCE_URL
+        fromDatabase:
+          name: users-db
+          property: connectionString
+      - key: DATASOURCE_USERNAME
+        fromDatabase:
+          name: users-db
+          property: user
+      - key: DATASOURCE_PASSWORD
+        fromDatabase:
+          name: users-db
+          property: password
+      - key: MAIL_HOST
         value: smtp.gmail.com
-      - key: SMTP_PORT
+      - key: MAIL_PORT
         value: "587"
-      - key: SMTP_USERNAME
-        value: scuadrod@gmail.com
-      - key: SMTP_PASSWORD
-        value: hrjnxuvflclcarns
-      - key: SMTP_FROM_ADDRESS
-        value: scuadrod@gmail.com
-      - key: SMTP_FROM_NAME
-        value: Gestion de Usuarios
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
       - key: JWT_SECRET
-        value: ZGV2ZWxvcG1lbnQtb25seS1qd3Qtc2VjcmV0LW11c3QtYmUtcmVwbGFjZWQ=
+        generateValue: true
       - key: JWT_EXPIRATION_SECONDS
         value: "900"

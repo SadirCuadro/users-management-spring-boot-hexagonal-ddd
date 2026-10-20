@@ -37,6 +37,9 @@ public class DataSourceSpringConfig {
   @Value("${db.type:postgresql}")
   private String dbType;
 
+  @Value("${db.ssl-mode:VERIFY_IDENTITY}")
+  private String dbSslMode;
+
   @Bean
   public DataSource dataSource() {
     final HikariConfig hikariConfig = new HikariConfig();
@@ -51,11 +54,11 @@ public class DataSourceSpringConfig {
       log.info("[DataSourceSpringConfig] DataSource inicializado via spring.datasource.url: {}", springDatasourceUrl);
     } else {
       final DatabaseConfig config =
-          new DatabaseConfig(dbHost, dbPort, dbName, datasourceUsername, datasourcePassword, dbType);
+          new DatabaseConfig(dbHost, dbPort, dbName, datasourceUsername, datasourcePassword, dbType, dbSslMode);
       hikariConfig.setJdbcUrl(config.buildJdbcUrl());
       hikariConfig.setUsername(config.username());
       hikariConfig.setPassword(config.password());
-      log.info("[DataSourceSpringConfig] DataSource inicializado via DatabaseConfig. type={} host={} port={}", dbType, dbHost, dbPort);
+      log.info("[DataSourceSpringConfig] DataSource inicializado via DatabaseConfig. type={} host={} port={} sslMode={}", dbType, dbHost, dbPort, dbSslMode);
     }
 
     hikariConfig.setMaximumPoolSize(10);

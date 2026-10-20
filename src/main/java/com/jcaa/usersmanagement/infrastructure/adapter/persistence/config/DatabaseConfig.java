@@ -2,24 +2,28 @@ package com.jcaa.usersmanagement.infrastructure.adapter.persistence.config;
 
 /**
  * Configuración de conexión a base de datos.
- * Soporta MySQL y PostgreSQL según el tipo indicado por {@code dbType}.
+ * Soporta MySQL (local, Aiven y TiDB Cloud NewSQL Serverless) y PostgreSQL según {@code dbType}.
  * <p>
- * Para PostgreSQL en Render/Supabase se agrega {@code sslmode=require} automáticamente.
+ * Para PostgreSQL se agrega {@code sslmode=require} automáticamente.
+ * Para MySQL / TiDB Cloud se soporta {@code sslMode} configurable (por defecto {@code VERIFY_IDENTITY}).
  */
 public record DatabaseConfig(
-    String host, int port, String databaseName, String username, String password, String dbType) {
+    String host, int port, String databaseName, String username, String password, String dbType, String sslMode) {
 
-  private static final String URL_MYSQL =
-      "jdbc:mysql://%s:%d/%s?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
-
-  // sslmode=require es obligatorio para Render y Supabase
-  private static final String URL_POSTGRESQL =
-      "jdbc:postgresql://%s:%d/%s?sslmode=require";
+  public DatabaseConfig(String host, int port, String databaseName, String username, String password, String dbType) {
+    this(host, port, databaseName, username, password, dbType, "VERIFY_IDENTITY");
+  }
 
   public String buildJdbcUrl() {
     if ("postgresql".equalsIgnoreCase(dbType)) {
-      return String.format(URL_POSTGRESQL, host, port, databaseName);
+      return String.format("jdbc:postgresql://%s:%d/%s?sslmode=require", host, port, databaseName);
     }
-    return String.format(URL_MYSQL, host, port, databaseName);
+    // Para TiDB Cloud y MySQL con TLS/SSL
+    String sslParam = (sslMode != null && !sslMode.isBlank() && !"DISABLED".equalsIgnoreCase(sslMode) && !"false".equalsIgnoreCase(sslMode))
+        ? ("sslMode=" + sslMode)
+        : "useSSL=false";
+    return String.format(
+        "jdbc:mysql://%s:%d/%s?%s&serverTimezone=UTC&allowPublicKeyRetrieval=true",
+        host, port, databaseName, sslParam);
   }
 }

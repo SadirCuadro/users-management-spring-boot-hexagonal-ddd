@@ -1,9 +1,3 @@
-databases:
-  - name: users-db
-    databaseName: users_db
-    user: users_admin
-    plan: free
-
 services:
   - type: web
     name: users-management-api
@@ -17,19 +11,19 @@ services:
       - key: PORT
         value: "8080"
       - key: DB_TYPE
-        value: postgresql
-      - key: DATASOURCE_URL
-        fromDatabase:
-          name: users-db
-          property: connectionString
-      - key: DATASOURCE_USERNAME
-        fromDatabase:
-          name: users-db
-          property: user
-      - key: DATASOURCE_PASSWORD
-        fromDatabase:
-          name: users-db
-          property: password
+        value: mysql
+      - key: DB_HOST
+        value: gateway01.us-east-1.prod.aws.tidbcloud.com
+      - key: DB_PORT
+        value: "4000"
+      - key: DB_NAME
+        value: crud_usuarios
+      - key: DB_USERNAME
+        value: 2z4PjPCWkMWFvjz.root
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_SSL_MODE
+        value: VERIFY_IDENTITY
       - key: MAIL_HOST
         value: smtp.gmail.com
       - key: MAIL_PORT

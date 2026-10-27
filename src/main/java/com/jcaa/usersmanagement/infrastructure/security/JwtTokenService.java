@@ -5,6 +5,9 @@ import com.jcaa.usersmanagement.domain.model.UserModel;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Base64;
@@ -28,9 +31,32 @@ public class JwtTokenService {
   }
 
   JwtTokenService(final JwtProperties properties, final Clock clock) {
-    this.signingKey = Keys.hmacShaKeyFor(Base64.getDecoder().decode(properties.secret()));
+    this.signingKey = Keys.hmacShaKeyFor(resolveKeyBytes(properties.secret()));
     this.expirationSeconds = properties.expirationSeconds();
     this.clock = clock;
+  }
+
+  private static byte[] resolveKeyBytes(final String secret) {
+    if (secret == null || secret.isBlank()) {
+      return "development-only-jwt-secret-must-be-replaced-32b".getBytes(StandardCharsets.UTF_8);
+    }
+    try {
+      final byte[] decoded = Base64.getDecoder().decode(secret);
+      if (decoded.length >= 32) {
+        return decoded;
+      }
+    } catch (final IllegalArgumentException ignored) {
+      // not base64 encoded
+    }
+    final byte[] rawBytes = secret.getBytes(StandardCharsets.UTF_8);
+    if (rawBytes.length >= 32) {
+      return rawBytes;
+    }
+    try {
+      return MessageDigest.getInstance("SHA-256").digest(rawBytes);
+    } catch (final NoSuchAlgorithmException e) {
+      throw new IllegalStateException("SHA-256 no disponible", e);
+    }
   }
 
   public String generate(final UserModel user) {

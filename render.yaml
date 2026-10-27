@@ -29,6 +29,6 @@ services:
       - key: BREVO_FROM_NAME
         value: Gestion de Usuarios
       - key: JWT_SECRET
-        generateValue: true
+        value: ZGV2ZWxvcG1lbnQtb25seS1qd3Qtc2VjcmV0LW11c3QtYmUtcmVwbGFjZWQ=
       - key: JWT_EXPIRATION_SECONDS
         value: "900"

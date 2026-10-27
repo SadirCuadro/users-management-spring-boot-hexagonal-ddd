@@ -6,32 +6,25 @@ services:
     branch: main
     autoDeployTrigger: commit
     healthCheckPath: /v3/api-docs
-    dockerfilePath: ./Dockerfile
     envVars:
-      - key: PORT
-        value: "8080"
-      - key: DB_TYPE
-        value: mysql
       - key: DB_HOST
-        value: gateway01.us-east-1.prod.aws.tidbcloud.com
+        sync: false
       - key: DB_PORT
-        value: "4000"
+        sync: false
       - key: DB_NAME
         value: crud_usuarios
       - key: DB_USERNAME
-        value: 2z4PjPCWkMWFvjz.root
+        sync: false
       - key: DB_PASSWORD
         sync: false
       - key: DB_SSL_MODE
-        value: VERIFY_IDENTITY
-      - key: MAIL_HOST
-        value: smtp.gmail.com
-      - key: MAIL_PORT
-        value: "587"
-      - key: MAIL_USERNAME
+        value: REQUIRED
+      - key: BREVO_API_KEY
         sync: false
-      - key: MAIL_PASSWORD
+      - key: BREVO_FROM_ADDRESS
         sync: false
+      - key: BREVO_FROM_NAME
+        value: Gestion de Usuarios
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_EXPIRATION_SECONDS

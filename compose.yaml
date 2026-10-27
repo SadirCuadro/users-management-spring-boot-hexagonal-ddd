@@ -1,47 +1,52 @@
 services:
-  db:
-    image: postgres:15-alpine
-    container_name: users_db
+  mysql:
+    image: mysql:8.4
     environment:
-      POSTGRES_DB: users_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      MYSQL_DATABASE: crud_usuarios
+      MYSQL_USER: users_app
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD en el archivo .env local}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Defina MYSQL_ROOT_PASSWORD en el archivo .env local}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:3306:3306"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
-      - ./src/main/resources/schema-postgresql.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - mysql-data:/var/lib/mysql
+      - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/001-schema.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d users_db"]
+      test:
+        - CMD-SHELL
+        - mysqladmin ping --host=127.0.0.1 --user=root --password=$${MYSQL_ROOT_PASSWORD}
       interval: 5s
       timeout: 5s
-      retries: 5
-      start_period: 10s
+      retries: 20
+      start_period: 20s
     restart: unless-stopped
 
-  app:
+  api:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: users_management_app
-    ports:
-      - "8080:8080"
+    image: users-management-api:local
     environment:
       PORT: "8080"
-      DB_TYPE: postgresql
-      DATASOURCE_URL: jdbc:postgresql://db:5432/users_db
-      DATASOURCE_USERNAME: postgres
-      DATASOURCE_PASSWORD: postgres
-      MAIL_HOST: smtp.gmail.com
-      MAIL_PORT: "587"
-      MAIL_USERNAME: ${MAIL_USERNAME:-scuadrod@gmail.com}
-      MAIL_PASSWORD: ${MAIL_PASSWORD:-hrjnxuvflclcarns}
-      JWT_SECRET: ${JWT_SECRET:-ZGV2ZWxvcG1lbnQtb25seS1qd3Qtc2VjcmV0LW11c3QtYmUtcmVwbGFjZWQ=}
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_NAME: crud_usuarios
+      DB_USERNAME: users_app
+      DB_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD en el archivo .env local}
+      DB_SSL_MODE: DISABLED
+      BREVO_API_KEY: ${BREVO_API_KEY:?Defina BREVO_API_KEY en el archivo .env local}
+      BREVO_FROM_ADDRESS: ${BREVO_FROM_ADDRESS:?Defina BREVO_FROM_ADDRESS en el archivo .env local}
+      BREVO_FROM_NAME: ${BREVO_FROM_NAME:-Gestion de Usuarios}
+      JWT_SECRET: ${JWT_SECRET:?Defina JWT_SECRET en el archivo .env local}
       JWT_EXPIRATION_SECONDS: ${JWT_EXPIRATION_SECONDS:-900}
+    ports:
+      - "127.0.0.1:8080:8080"
     depends_on:
-      db:
+      mysql:
         condition: service_healthy
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
 
 volumes:
-  postgres-data:
+  mysql-data:

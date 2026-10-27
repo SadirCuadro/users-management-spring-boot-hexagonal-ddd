@@ -13,58 +13,48 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods = false)
 public class DataSourceSpringConfig {
 
-  @Value("${spring.datasource.url:}")
-  private String springDatasourceUrl;
+  private static final String PROP_DB_HOST     = "${db.host}";
+  private static final String PROP_DB_PORT     = "${db.port}";
+  private static final String PROP_DB_NAME     = "${db.name}";
+  private static final String PROP_DB_USERNAME = "${db.username}";
+  private static final String PROP_DB_PASSWORD = "${db.password}";
+  private static final String PROP_DB_SSL_MODE = "${db.ssl-mode}";
 
-  @Value("${spring.datasource.username:${db.username:postgres}}")
-  private String datasourceUsername;
+  private static final String LOG_DATASOURCE_INIT = "[DataSourceSpringConfig] DataSource inicializado. host={} port={}";
 
-  @Value("${spring.datasource.password:${db.password:postgres}}")
-  private String datasourcePassword;
-
-  @Value("${spring.datasource.driver-class-name:}")
-  private String driverClassName;
-
-  @Value("${db.host:localhost}")
+  @Value(PROP_DB_HOST)
   private String dbHost;
 
-  @Value("${db.port:5432}")
+  @Value(PROP_DB_PORT)
   private int dbPort;
 
-  @Value("${db.name:users_db}")
+  @Value(PROP_DB_NAME)
   private String dbName;
 
-  @Value("${db.type:postgresql}")
-  private String dbType;
+  @Value(PROP_DB_USERNAME)
+  private String dbUsername;
 
-  @Value("${db.ssl-mode:VERIFY_IDENTITY}")
+  @Value(PROP_DB_PASSWORD)
+  private String dbPassword;
+
+  @Value(PROP_DB_SSL_MODE)
   private String dbSslMode;
 
   @Bean
   public DataSource dataSource() {
+    final DatabaseConfig config =
+        new DatabaseConfig(dbHost, dbPort, dbName, dbUsername, dbPassword, dbSslMode);
+
     final HikariConfig hikariConfig = new HikariConfig();
-
-    if (springDatasourceUrl != null && !springDatasourceUrl.isBlank()) {
-      hikariConfig.setJdbcUrl(springDatasourceUrl);
-      hikariConfig.setUsername(datasourceUsername);
-      hikariConfig.setPassword(datasourcePassword);
-      if (driverClassName != null && !driverClassName.isBlank()) {
-        hikariConfig.setDriverClassName(driverClassName);
-      }
-      log.info("[DataSourceSpringConfig] DataSource inicializado via spring.datasource.url: {}", springDatasourceUrl);
-    } else {
-      final DatabaseConfig config =
-          new DatabaseConfig(dbHost, dbPort, dbName, datasourceUsername, datasourcePassword, dbType, dbSslMode);
-      hikariConfig.setJdbcUrl(config.buildJdbcUrl());
-      hikariConfig.setUsername(config.username());
-      hikariConfig.setPassword(config.password());
-      log.info("[DataSourceSpringConfig] DataSource inicializado via DatabaseConfig. type={} host={} port={} sslMode={}", dbType, dbHost, dbPort, dbSslMode);
-    }
-
+    hikariConfig.setJdbcUrl(config.buildJdbcUrl());
+    hikariConfig.setUsername(config.username());
+    hikariConfig.setPassword(config.password());
     hikariConfig.setMaximumPoolSize(10);
     hikariConfig.setMinimumIdle(2);
     hikariConfig.setConnectionTimeout(30_000);
 
+    log.info(LOG_DATASOURCE_INIT, dbHost, dbPort);
     return new HikariDataSource(hikariConfig);
   }
 }
+
